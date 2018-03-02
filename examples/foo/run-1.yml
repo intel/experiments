@@ -3,7 +3,7 @@ kind: Run
 metadata:
   name: foo-1
   labels:
-    experimentID: foo
+    experiment: foo
   ownerReferences:
     - apiVersion: ml.intel.com/v1
       controller: true
