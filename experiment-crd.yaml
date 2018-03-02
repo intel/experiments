@@ -1,0 +1,16 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: experiments.ml.intel.com
+spec:
+  # group name to use for REST API: /apis/<group>/<version>
+  group: ml.intel.com
+  # version name to use for REST API: /apis/<group>/<version>
+  version: v1
+  scope: Namespaced
+  names:
+    plural: experiments
+    singular: experiment
+    kind: Experiment
+    shortNames:
+    - exp

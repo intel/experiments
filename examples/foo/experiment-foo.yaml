@@ -1,0 +1,14 @@
+apiVersion: "ml.intel.com/v1"
+kind: Experiment
+metadata:
+  name: foo
+spec:
+  jobSpec:
+    template:
+      spec:
+        containers:
+        - name: train
+          image: tensorflow
+          command: ["train.py"]
+        restartPolicy: Never
+    backoffLimit: 4

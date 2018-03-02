@@ -1,0 +1,25 @@
+apiVersion: "ml.intel.com/v1"
+kind: Run
+metadata:
+  name: foo-1
+  labels:
+    experimentID: foo
+  ownerReferences:
+    - apiVersion: ml.intel.com/v1
+      controller: true
+      kind: Experiment
+      name: foo
+      uid: ab9409f1-1ded-11e8-a9c5-c85b76944bc7
+spec:
+  # These get passed as environment variables in job containers.
+  parameters:
+    w: 2.5
+    x: 5
+    y: "yes"
+    z: true
+status:
+  # Results are published back to the API server from the job
+  # script.
+  results:
+    maxSuccessRate: 76
+    fitness: 0.51
