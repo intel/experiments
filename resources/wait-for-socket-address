@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+
+import socket
+import sys
+import time
+
+
+if len(sys.argv) != 3:
+    print("Usage: wait-for-socket-address HOST PORT")
+    sys.exit(1)
+
+host = sys.argv[1]
+port = sys.argv[2]
+ready = False
+
+while not ready:
+    print("Probing {}:{}...".format(host, int(port)))
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if s.connect_ex((host, int(port))) == 0:
+        ready = True
+        continue
+    time.sleep(1)
+
+print("Socket address {}:{} is listening".format(host, int(port)))

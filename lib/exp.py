@@ -1,4 +1,11 @@
+import kubernetes
 from kubernetes import client
+from collections import namedtuple
+import json
+import logging
+import os
+import subprocess
+import yaml
 
 
 API = 'ml.intel.com'
@@ -17,9 +24,28 @@ class Client(object):
 
     # Type Definitions
 
-    def ensure_crds_exist(self):
-        # TODO(CD)
-        pass
+    def create_crds(self):
+        # Necessary to get access to request body deserialization methods.
+        api_client = client.ApiClient()
+
+        # API Extensions V1 beta1 API client.
+        crd_api = client.ApiextensionsV1beta1Api()
+
+        crd_dir = os.path.join(os.path.dirname(__file__), '../resources/crds')
+        crd_paths = [os.path.abspath(os.path.join(crd_dir, name))
+                for name in os.listdir(crd_dir)]
+        Response = namedtuple('Response', ['data'])
+        for path in crd_paths:
+            with open(path) as crd_file:
+                crd_json = json.dumps(yaml.load(crd_file.read()), sort_keys=True, indent=2)
+                print('Deserializing CRD:\n{}'.format(crd_json))
+                crd_body = Response(crd_json)
+                crd = api_client.deserialize(crd_body, 'V1beta1CustomResourceDefinition')
+                print('Deserialized CRD:\n{}'.format(crd))
+                try:
+                    crd_api.create_custom_resource_definition(crd)
+                except Exception:
+                    pass
 
     # Experiments
 
