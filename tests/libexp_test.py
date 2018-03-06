@@ -1,4 +1,5 @@
 import logging
+from . import test_namespace
 from lib.exp import Client, Experiment, Run
 
 
@@ -7,20 +8,20 @@ def log(msg):
 
 
 def test_client_list_experiments():
-    c = Client()
+    c = Client(test_namespace.metadata.name)
     result = c.list_experiments()
     assert isinstance(result, list)
 
 
 def test_client_list_runs():
-    c = Client()
+    c = Client(test_namespace.metadata.name)
     result = c.list_runs()
     assert isinstance(result, list)
 
 
 # TODO(CD): run tests in some namespace and destroy it when complete
 def test_ux_flow():
-    c = Client()
+    c = Client(test_namespace.metadata.name)
 
     # Create a new experiment
     jobSpec = {
