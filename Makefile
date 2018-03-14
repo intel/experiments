@@ -8,7 +8,7 @@ deps:
 	pip3 install -r requirements.txt -r requirements_tests.txt
 
 lint:
-	flake8 ./libexp ./tests
+	flake8 ./libexp ./tests ./examples/
 
 test: lint
 	nosetests -v --debug=test

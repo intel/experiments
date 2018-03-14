@@ -1,7 +1,8 @@
 apiVersion: "ml.intel.com/v1"
 kind: Experiment
 metadata:
-  name: foo
+  name: test
+  namespace: demo
 spec:
   jobSpec:
     template:
