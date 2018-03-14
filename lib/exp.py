@@ -12,8 +12,8 @@ API = 'ml.intel.com'
 API_VERSION = 'v1'
 EXPERIMENT = "experiment"
 EXPERIMENTS = "experiments"
-RUN = "run"
-RUNS = "runs"
+RESULT = "result"
+RESULTS = "results"
 
 
 # Simple Experiments API wrapper for kube client
@@ -94,56 +94,60 @@ class Client(object):
                 name,
                 client.models.V1DeleteOptions())
 
-    # Experiment Runs
+    # Experiment Results
 
-    def list_runs(self):
+    def list_results(self):
         response = self.k8s.list_namespaced_custom_object(
                 API,
                 API_VERSION,
                 self.namespace,
-                RUNS)
-        return [Run.from_body(item) for item in response['items']]
+                RESULTS)
+        return [Result.from_body(item) for item in response['items']]
 
-    def get_run(self, name):
+    def get_result(self, name):
         response = self.k8s.get_namespaced_custom_object(
                 API,
                 API_VERSION,
                 self.namespace,
-                RUNS,
+                RESULTS,
                 name)
-        return Run.from_body(response)
+        return Result.from_body(response)
 
-    def create_run(self, run):
+    def create_result(self, result):
         response = self.k8s.create_namespaced_custom_object(
                 API,
                 API_VERSION,
                 self.namespace,
-                RUNS,
-                body=run.to_body())
-        return Run.from_body(response)
+                RESULTS,
+                body=result.to_body())
+        return Result.from_body(response)
 
-    def update_run(self, run):
+    def update_result(self, result):
         response = self.k8s.replace_namespaced_custom_object(
                 API,
                 API_VERSION,
                 self.namespace,
-                RUNS,
-                run.name,
-                run.to_body())
-        return Run.from_body(response)
+                RESULTS,
+                result.name,
+                result.to_body())
+        return Result.from_body(response)
 
-    def delete_run(self, name):
+    def delete_result(self, name):
         return self.k8s.delete_namespaced_custom_object(
                 API,
                 API_VERSION,
                 self.namespace,
-                RUNS,
+                RESULTS,
                 name,
                 client.models.V1DeleteOptions())
 
 
 class Experiment(object):
-    def __init__(self, name, job_template, status={}, meta={}):
+    def __init__(self, name, job_template, status=None, meta=None):
+        if not status:
+            status = {}
+        if not meta:
+            meta = {}
         self.name = name
         self.job_template = job_template
         self.status = status
@@ -164,6 +168,13 @@ class Experiment(object):
             'status': self.status
         }
 
+    def result(self, job_name):
+        return Result(
+            job_name,
+            self.name,
+            self.uid()
+        )
+
     @staticmethod
     def from_body(body):
         return Experiment(body['metadata']['name'],
@@ -172,10 +183,13 @@ class Experiment(object):
                           status=body.get('status', {}))
 
 
-class Run(object):
-    def __init__(self, name, params, exp_name, exp_uid, status={}, meta={}):
+class Result(object):
+    def __init__(self, name, exp_name, exp_uid, status=None, meta=None):
+        if not status:
+            status = {}
+        if not meta:
+            meta = {}
         self.name = name
-        self.params = params
         self.meta = meta
         self.status = status
         self.meta['name'] = self.name
@@ -192,30 +206,26 @@ class Run(object):
         labels['experiment'] = exp_name
         self.meta['labels'] = labels
 
-    def results(self):
-        return self.status.get('results', {})
+    def values(self):
+        return self.status.get('values', {})
 
-    # extends `.status.results` with the supplied map
-    def record_results(self, new_results):
-        old_results = self.status.get('results', {})
-        self.status['results'] = old_results
-        old_results.update(new_results)
+    # extends `.status.values` with the supplied map
+    def record_values(self, new_values):
+        old_values = self.status.get('values', {})
+        self.status['values'] = old_values
+        old_values.update(new_values)
 
     def to_body(self):
         return {
             'apiVersion': "{}/{}".format(API, API_VERSION),
-            'kind': RUN.title(),
+            'kind': RESULT.title(),
             'metadata': self.meta,
-            'spec': {
-                'parameters': self.params
-            },
             'status': self.status
         }
 
     @staticmethod
     def from_body(body):
-        return Run(body['metadata']['name'],
-                   body.get('spec', {}).get('parameters'),
+        return Result(body['metadata']['name'],
                    body['metadata']['ownerReferences'][0]['name'],
                    body['metadata']['ownerReferences'][0]['uid'],
                    meta=body['metadata'],
