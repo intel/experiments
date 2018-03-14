@@ -1,10 +1,12 @@
 import kubernetes
 from kubernetes import client
 from collections import namedtuple
+import copy
 import json
 import logging
 import os
 import subprocess
+import uuid
 import yaml
 
 
@@ -21,6 +23,7 @@ class Client(object):
     def __init__(self, namespace='default'):
         self.namespace = namespace
         self.k8s = client.CustomObjectsApi()
+        self.batch = client.BatchV1Api()
 
     # Type Definitions
 
@@ -140,6 +143,81 @@ class Client(object):
                 RESULTS,
                 name,
                 client.models.V1DeleteOptions())
+    
+    def list_jobs(self, experiment):
+        return self.batch.list_namespaced_job(
+            self.namespace,
+            label_selector='experiment_uid={}'.format(experiment.uid())
+        ).items
+
+    def create_job(self, experiment, parameters):
+        short_uuid = str(uuid.uuid4())[:8]
+        metadata = {
+            'name': "{}-{}".format(experiment.name, short_uuid),
+            'labels': {
+                'experiment_uid': experiment.uid(),
+                'experiment_name': experiment.name
+            },
+            'ownerReferences': [
+                {
+                    'apiVersion': '{}/{}'.format(API, API_VERSION),
+                    'controller': True,
+                    'kind': EXPERIMENT.title(),
+                    'name': experiment.name,
+                    'uid': experiment.uid(),
+                    'blockOwnerDeletion': True
+                }
+            ]
+        }
+        job_name = metadata['name']
+        
+        template = copy.deepcopy(experiment.job_template)
+
+        containers = None
+        if 'template' in template and 'spec' in template['template'] and 'containers' in template['template']['spec']:
+            containers = template['template']['spec']['containers']
+        
+        if not containers:
+            raise Exception("Container templates are not available in experiment job")
+
+        experiment_environment_metadata = {
+            'JOB_NAME': job_name
+        }
+
+        # Provide parameters in environment variables, encoded like:
+        # PARAMETER_X_FLOAT = "3.14"
+        for parameter in parameters:
+            value = parameters[parameter]
+            value_kind = str(type(value).__name__)
+            key = "PARAMETER_{}_{}".format(parameter, value_kind).upper()
+
+            # To avoid python'ist boolean values. Encode them as either 'true' or 'false'
+            if value_kind == "bool":
+                value = str(value).lower()
+
+            experiment_environment_metadata[key] = str(value)
+
+        for container in containers:
+            if 'environment' not in container:
+                container['environment'] = {}
+            
+            container['environment'].update(experiment_environment_metadata)
+
+        api_client = client.ApiClient()
+        Response = namedtuple('Response', ['data'])
+        crd_body = Response(json.dumps(template))
+        spec = api_client.deserialize(crd_body, 'V1JobSpec')
+
+        job = client.models.V1Job(
+            api_version='batch/v1',
+            kind='Job',
+            metadata=metadata,
+            spec=spec)
+
+        return self.batch.create_namespaced_job(
+            self.namespace,
+            body=job
+        )
 
 
 class Experiment(object):
@@ -199,7 +277,8 @@ class Result(object):
                 'controller': True,
                 'kind': EXPERIMENT.title(),
                 'name': exp_name,
-                'uid': exp_uid
+                'uid': exp_uid,
+                'blockOwnerDeletion': True
             }
         ]
         labels = self.meta.get('labels', {})
