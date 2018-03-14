@@ -1,6 +1,6 @@
 import logging
 from . import test_namespace
-from lib.exp import Client, Experiment, Run
+from lib.exp import Client, Experiment
 
 
 def log(msg):
@@ -13,9 +13,9 @@ def test_client_list_experiments():
     assert isinstance(result, list)
 
 
-def test_client_list_runs():
+def test_client_list_results():
     c = Client(test_namespace.metadata.name)
-    result = c.list_runs()
+    result = c.list_results()
     assert isinstance(result, list)
 
 
@@ -51,17 +51,20 @@ def test_ux_flow():
     #
     #   This project will provide a controller to materialize experiment
     #   runs into parameterized jobs.
-    params = {'x': 3.14, 'y': 5.0, 'z': False}
-    run = c.create_run(Run('test-1', params, exp.name, exp.uid()))
+    # params = {'x': 3.14, 'y': 5.0, 'z': False}
+    # run = c.create_run(Run('test-1', params, exp.name, exp.uid()))
 
-    assert run.name == 'test-1'
+    # assert run.name == 'test-1'
 
     # Publish results for the test run
     #
     #   This happens from the job container itself.
     #   The controller will pass sufficient info via environment variables
     #   so that it's easy to fetch the current run and update it.
-    run.record_results({'fitness': 0.86})
-    run = c.update_run(run)
 
-    assert run.results()['fitness'] == 0.86
+    job_name = 'test'  # TODO: get this from env
+    result = c.create_result(exp.result(job_name))
+    result.record_values({'fitness': 0.86})
+    result = c.update_result(result)
+
+    assert result.values()['fitness'] == 0.86
