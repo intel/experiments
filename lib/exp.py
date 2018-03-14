@@ -181,7 +181,10 @@ class Client(object):
             raise Exception("Container templates are not available in experiment job")
 
         experiment_environment_metadata = {
-            'JOB_NAME': job_name
+            'JOB_NAME': job_name,
+            'EXPERIMENT_NAMESPACE': self.namespace,
+            'EXPERIMENT_NAME': experiment.name,
+            'EXPERIMENT_UID': experiment.uid()
         }
 
         # Provide parameters in environment variables, encoded like:
