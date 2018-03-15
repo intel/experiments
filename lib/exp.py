@@ -52,6 +52,12 @@ class Client(object):
 
     # Experiments
 
+    def current_experiment(self):
+        exp_name = os.getenv('EXPERIMENT_NAME')
+        if not exp_name:
+            raise Exception('Environment variable EXPERIMENT_NAME not set')
+        return self.get_experiment(exp_name)
+
     def list_experiments(self):
         response = self.k8s.list_namespaced_custom_object(
                 API,

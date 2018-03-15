@@ -12,3 +12,5 @@ spec:
     plural: results
     singular: result
     kind: Result
+    shortNames:
+    - res
