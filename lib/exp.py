@@ -18,6 +18,14 @@ RESULT = "result"
 RESULTS = "results"
 
 
+def deserialize_object(serialized_bytes, class_name):
+    # Necessary to get access to request body deserialization methods.
+    api_client = client.ApiClient()
+    Response = namedtuple('Response', ['data'])
+    body = Response(serialized_bytes)
+    return api_client.deserialize(body, class_name)
+
+
 # Simple Experiments API wrapper for kube client
 class Client(object):
     def __init__(self, namespace='default'):
@@ -28,23 +36,16 @@ class Client(object):
     # Type Definitions
 
     def create_crds(self):
-        # Necessary to get access to request body deserialization methods.
-        api_client = client.ApiClient()
-
         # API Extensions V1 beta1 API client.
         crd_api = client.ApiextensionsV1beta1Api()
 
         crd_dir = os.path.join(os.path.dirname(__file__), '../resources/crds')
         crd_paths = [os.path.abspath(os.path.join(crd_dir, name))
                 for name in os.listdir(crd_dir)]
-        Response = namedtuple('Response', ['data'])
         for path in crd_paths:
             with open(path) as crd_file:
                 crd_json = json.dumps(yaml.load(crd_file.read()), sort_keys=True, indent=2)
-                print('Deserializing CRD:\n{}'.format(crd_json))
-                crd_body = Response(crd_json)
-                crd = api_client.deserialize(crd_body, 'V1beta1CustomResourceDefinition')
-                print('Deserialized CRD:\n{}'.format(crd))
+                crd = deserialize_object(crd_json, 'V1beta1CustomResourceDefinition')
                 try:
                     crd_api.create_custom_resource_definition(crd)
                 except Exception:
