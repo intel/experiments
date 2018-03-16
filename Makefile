@@ -1,10 +1,10 @@
-.PHONY: deps push-to-gcr
+.PHONY: deps
 
 VERSION := $(shell git describe --tags --always --dirty)
 GCR_PROJECT := $(shell gcloud config get-value project 2> /dev/null)
 IMG := "gcr.io/GCR_PROJECT/experiments:$(VERSION)"
 
-all: project test
+all: test
 
 deps:
 	pip3 install -r requirements.txt -r requirements_tests.txt
