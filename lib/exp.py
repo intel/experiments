@@ -150,7 +150,7 @@ class Client(object):
                 RESULTS,
                 name,
                 client.models.V1DeleteOptions())
-    
+
     def list_jobs(self, experiment):
         return self.batch.list_namespaced_job(
             self.namespace,
@@ -177,13 +177,13 @@ class Client(object):
             ]
         }
         job_name = metadata['name']
-        
+
         template = copy.deepcopy(experiment.job_template)
 
         containers = None
         if 'template' in template and 'spec' in template['template'] and 'containers' in template['template']['spec']:
             containers = template['template']['spec']['containers']
-        
+
         if not containers:
             raise Exception("Container templates are not available in experiment job")
 
@@ -210,19 +210,14 @@ class Client(object):
         for container in containers:
             if 'environment' not in container:
                 container['environment'] = {}
-            
-            container['environment'].update(experiment_environment_metadata)
 
-        api_client = client.ApiClient()
-        Response = namedtuple('Response', ['data'])
-        crd_body = Response(json.dumps(template))
-        spec = api_client.deserialize(crd_body, 'V1JobSpec')
+            container['environment'].update(experiment_environment_metadata)
 
         job = client.models.V1Job(
             api_version='batch/v1',
             kind='Job',
             metadata=metadata,
-            spec=spec)
+            spec=deserialize_object(json.dumps(template), 'V1JobSpec'))
 
         return self.batch.create_namespaced_job(
             self.namespace,
