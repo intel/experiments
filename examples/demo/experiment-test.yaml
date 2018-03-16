@@ -1,7 +1,7 @@
 apiVersion: "ml.intel.com/v1"
 kind: Experiment
 metadata:
-  name: test
+  name: {{crd_name}}
   namespace: demo
 spec:
   jobSpec:
@@ -9,7 +9,7 @@ spec:
       spec:
         containers:
         - name: train
-          image: tensorflow
-          command: ["train.py"]
+          image: {{img}}
+          command: ["job.py"]
         restartPolicy: Never
     backoffLimit: 4
