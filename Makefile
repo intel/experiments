@@ -1,6 +1,8 @@
 .PHONY: deps
 
 VERSION := $(shell git describe --tags --always --dirty)
+GCR_PROJECT := $(shell gcloud config get-value project 2> /dev/null)
+IMG := "gcr.io/$(GCR_PROJECT)/experiments:$(VERSION)"
 
 all: test
 
@@ -27,3 +29,7 @@ test-e2e: e2e-env
 
 debug: e2e-env
 	docker-compose exec test /bin/bash
+
+push-to-gcr: docker
+	@echo docker tag experiments:$(VERSION) $(IMG)
+	@echo gcloud docker -- push $(IMG)
