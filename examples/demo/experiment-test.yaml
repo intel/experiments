@@ -4,12 +4,17 @@ metadata:
   name: {{crd_name}}
   namespace: demo
 spec:
+  parameters:
+    "x": [1, 2, 3]
+    "y": [true, false]
+    "z": ["foo", "bar"]
   jobSpec:
     template:
       spec:
         containers:
         - name: train
           image: {{img}}
-          command: ["job.py"]
+          imagePullPolicy: Always
+          command: ["./job.py"]
         restartPolicy: Never
     backoffLimit: 4

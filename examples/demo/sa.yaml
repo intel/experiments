@@ -1,0 +1,27 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: demo
+  name: experiments-and-results
+rules:
+- apiGroups: ["ml.intel.com"]
+  resources: ["experiments"]
+  verbs: ["*"]
+- apiGroups: ["ml.intel.com"]
+  resources: ["results"]
+  verbs: ["*"]
+---
+# experiment CRD role binding
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: experiments-and-results
+  namespace: demo
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: demo
+roleRef:
+  kind: Role
+  name: experiments-and-results
+  apiGroup: rbac.authorization.k8s.io

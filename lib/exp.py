@@ -187,12 +187,12 @@ class Client(object):
         if not containers:
             raise Exception("Container templates are not available in experiment job")
 
-        experiment_environment_metadata = {
-            'JOB_NAME': job_name,
-            'EXPERIMENT_NAMESPACE': self.namespace,
-            'EXPERIMENT_NAME': experiment.name,
-            'EXPERIMENT_UID': experiment.uid()
-        }
+        experiment_environment_metadata = [
+            {'name': 'JOB_NAME', 'value': job_name},
+            {'name': 'EXPERIMENT_NAMESPACE', 'value': self.namespace},
+            {'name': 'EXPERIMENT_NAME', 'value': experiment.name},
+            {'name': 'EXPERIMENT_UID', 'value': experiment.uid()}
+        ]
 
         # Provide parameters in environment variables, encoded like:
         # PARAMETER_X_FLOAT = "3.14"
@@ -205,13 +205,14 @@ class Client(object):
             if value_kind == "bool":
                 value = str(value).lower()
 
-            experiment_environment_metadata[key] = str(value)
+            experiment_environment_metadata.append(
+                    {'name': key, 'value': str(value)})
 
         for container in containers:
-            if 'environment' not in container:
-                container['environment'] = {}
+            if not container.get('env'):
+                container['env'] = []
 
-            container['environment'].update(experiment_environment_metadata)
+            container['env'].extend(experiment_environment_metadata)
 
         job = client.models.V1Job(
             api_version='batch/v1',
@@ -226,13 +227,16 @@ class Client(object):
 
 
 class Experiment(object):
-    def __init__(self, name, job_template, status=None, meta=None):
+    def __init__(self, name, job_template, parameters=None, status=None, meta=None):
+        if not parameters:
+            parameters = {}
         if not status:
             status = {}
         if not meta:
             meta = {}
         self.name = name
         self.job_template = job_template
+        self.parameters=parameters
         self.status = status
         self.meta = meta
         self.meta['name'] = self.name
@@ -246,7 +250,8 @@ class Experiment(object):
             'kind': EXPERIMENT.title(),
             'metadata': self.meta,
             'spec': {
-                'jobSpec': self.job_template
+                'jobSpec': self.job_template,
+                'parameters': self.parameters
             },
             'status': self.status
         }
@@ -262,6 +267,7 @@ class Experiment(object):
     def from_body(body):
         return Experiment(body['metadata']['name'],
                           body.get('spec', {}).get('jobSpec'),
+                          body.get('spec', {}).get('parameters'),
                           meta=body['metadata'],
                           status=body.get('status', {}))
 
