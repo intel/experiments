@@ -31,5 +31,5 @@ debug: e2e-env
 	docker-compose exec test /bin/bash
 
 push-to-gcr: docker
-	@echo docker tag experiments:$(VERSION) $(IMG)
-	@echo gcloud docker -- push $(IMG)
+	docker tag experiments:$(VERSION) $(IMG)
+	gcloud docker -- push $(IMG)
