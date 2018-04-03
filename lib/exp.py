@@ -273,10 +273,13 @@ class Client(object):
                 "namespace": self.namespace
             })
 
-    def create_job(self, experiment, parameters):
+    def create_job(self, experiment, parameters, job_name=None):
         short_uuid = str(uuid.uuid4())[:8]
+        if job_name is None:
+            job_name = "{}-{}".format(experiment.name, short_uuid)
+
         metadata = {
-            'name': "{}-{}".format(experiment.name, short_uuid),
+            'name': job_name,
             'labels': {
                 'experiment_uid': experiment.uid(),
                 'experiment_name': experiment.name
@@ -295,7 +298,6 @@ class Client(object):
                 }
             ]
         }
-        job_name = metadata['name']
 
         template = copy.deepcopy(experiment.job_template)
 
@@ -322,7 +324,7 @@ class Client(object):
         for parameter in parameters:
             value = parameters[parameter]
             value_kind = str(type(value).__name__)
-            key = "PARAMETER_{}_{}".format(parameter, value_kind).upper()
+            key = "PARAMETER_{}".format(parameter).upper()
 
             # To avoid python'ist boolean values.
             # Encode them as either 'true' or 'false'
