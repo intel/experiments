@@ -8,7 +8,7 @@ This project provides an API for experiments, aims to standardize metadata assoc
 
 This is done through moving the experiment context into a shared API to promote sharing results and the development of tooling and decoupling parameter space search from job execution.
 
-![overview figure](docs/images/overview.png)
+(![overview figure](docs/images/overview.png))[https://docs.google.com/drawings/d/1CGDVt9finf_QC_H6lAIW9StmYiNOCLoemAmpNRN47tg/edit]
 
 ## Prerequisites
 
