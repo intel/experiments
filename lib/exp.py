@@ -1,11 +1,8 @@
-import kubernetes
 from kubernetes import client
 from collections import namedtuple
 import copy
 import json
-import logging
 import os
-import subprocess
 import uuid
 import yaml
 
@@ -41,11 +38,14 @@ class Client(object):
 
         crd_dir = os.path.join(os.path.dirname(__file__), '../resources/crds')
         crd_paths = [os.path.abspath(os.path.join(crd_dir, name))
-                for name in os.listdir(crd_dir)]
+                     for name in os.listdir(crd_dir)]
+
         for path in crd_paths:
             with open(path) as crd_file:
-                crd_json = json.dumps(yaml.load(crd_file.read()), sort_keys=True, indent=2)
-                crd = deserialize_object(crd_json, 'V1beta1CustomResourceDefinition')
+                crd_json = json.dumps(
+                    yaml.load(crd_file.read()), sort_keys=True, indent=2)
+                crd = deserialize_object(
+                    crd_json, 'V1beta1CustomResourceDefinition')
                 try:
                     crd_api.create_custom_resource_definition(crd)
                 except Exception:
@@ -181,11 +181,15 @@ class Client(object):
         template = copy.deepcopy(experiment.job_template)
 
         containers = None
-        if 'template' in template and 'spec' in template['template'] and 'containers' in template['template']['spec']:
+        if 'template' in template and \
+           'spec' in template['template'] and \
+           'containers' in template['template']['spec']:
+
             containers = template['template']['spec']['containers']
 
         if not containers:
-            raise Exception("Container templates are not available in experiment job")
+            raise Exception(
+                "Container templates are not available in experiment job")
 
         experiment_environment_metadata = [
             {'name': 'JOB_NAME', 'value': job_name},
@@ -201,7 +205,8 @@ class Client(object):
             value_kind = str(type(value).__name__)
             key = "PARAMETER_{}_{}".format(parameter, value_kind).upper()
 
-            # To avoid python'ist boolean values. Encode them as either 'true' or 'false'
+            # To avoid python'ist boolean values.
+            # Encode them as either 'true' or 'false'
             if value_kind == "bool":
                 value = str(value).lower()
 
@@ -227,7 +232,12 @@ class Client(object):
 
 
 class Experiment(object):
-    def __init__(self, name, job_template, parameters=None, status=None, meta=None):
+    def __init__(self,
+                 name,
+                 job_template,
+                 parameters=None,
+                 status=None,
+                 meta=None):
         if not parameters:
             parameters = {}
         if not status:
@@ -236,7 +246,7 @@ class Experiment(object):
             meta = {}
         self.name = name
         self.job_template = job_template
-        self.parameters=parameters
+        self.parameters = parameters
         self.status = status
         self.meta = meta
         self.meta['name'] = self.name
@@ -316,7 +326,7 @@ class Result(object):
     @staticmethod
     def from_body(body):
         return Result(body['metadata']['name'],
-                   body['metadata']['ownerReferences'][0]['name'],
-                   body['metadata']['ownerReferences'][0]['uid'],
-                   meta=body['metadata'],
-                   status=body.get('status', {}))
+                      body['metadata']['ownerReferences'][0]['name'],
+                      body['metadata']['ownerReferences'][0]['uid'],
+                      meta=body['metadata'],
+                      status=body.get('status', {}))
