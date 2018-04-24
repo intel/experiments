@@ -1,12 +1,10 @@
 # experiments
 
-Training a deep neural network requires finding a good combination of model hyperparameters. The process of finding good values for each is called hyperparameter optimization. The number of jobs required for each such experiment typically range from the low ones into the hundreds.
+Training a deep neural network requires finding a good combination of model hyperparameters. The process of finding good values for each is called hyperparameter optimization. The number of jobs required for each such experiment typically ranges from the low ones into the hundreds.
 
 Individual workflows for optimization vary, but this is typically an ad-hoc manual process including custom job submit scripts or even pen and paper.
 
-This project provides an API for experiments, aims to standardize metadata associated with each experiment's jobs and ease integration with the experiment tracking system via a python client library.
-
-This is done through moving the experiment context into a shared API to promote sharing results and the development of tooling and decoupling parameter space search from job execution.
+This project provides an API to support machine learning experiments on Kubernetes. This is done by moving the experiment context into a shared API and standardizing experiment job metadata. This promotes sharing results and tool development. Decoupling parameter space search from job execution further promotes re-use. This project eases job integration with the experiment tracking system by providing a python client library.
 
 [![overview figure](docs/images/overview.png)](https://docs.google.com/drawings/d/1CGDVt9finf_QC_H6lAIW9StmYiNOCLoemAmpNRN47tg/edit)
 
