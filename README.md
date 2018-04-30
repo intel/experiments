@@ -1,4 +1,4 @@
-# experiments
+# Experiments API
 
 Training a deep neural network requires finding a good combination of model hyperparameters. The process of finding good values for each is called hyperparameter optimization. The number of jobs required for each such experiment typically ranges from the low ones into the hundreds.
 
@@ -19,14 +19,14 @@ This project provides an API to support machine learning experiments on Kubernet
 
 To install, run the following:
 ```
-$ git clone https://github.com/NervanaSystems/experiments.git
+$ git clone https://github.com/IntelAI/experiments.git
 $ cd experiments
 $ pip install .
 ```
 
 ## Development
 
-To test the experiments API, run the following:
+To test the Experiments API, run the following:
 ```
 $ pip install -r requirements_tests.txt
 $ make test
