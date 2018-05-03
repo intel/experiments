@@ -1,0 +1,79 @@
+aliases:
+  - &executor_prep
+    docker:
+      # circleci images include docker, docker-compose
+      - image: circleci/python:3.6
+    working_directory: ~/repo
+  - &remote_docker
+    # Ensure layers of constructed docker containers are cached for reuse between jobs.
+    setup_remote_docker:
+      docker_layer_caching: true
+  - &restore_cache
+    restore_cache:
+      keys:
+        - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "requirements_tests.txt" }}
+        # fallback to using the latest cache if no exact match is found
+        - v1-dependencies-
+  - &save_cache
+    save_cache:
+      paths:
+        - ./venv
+      key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "requirements_tests.txt" }}
+  - &py_deps
+    run:
+      name: install python dependencies
+      command: |
+        python3 -m venv venv
+        . venv/bin/activate
+        pip install -r requirements.txt -r requirements_tests.txt
+
+
+version: 2
+jobs:
+  build:
+    <<: *executor_prep
+    steps:
+      - checkout
+      - *remote_docker
+      - *restore_cache
+      - *py_deps
+  lint:
+    <<: *executor_prep
+    steps:
+      - checkout
+      - *remote_docker
+      - *restore_cache
+      - *py_deps
+      - run:
+          name: run linting
+          command: |
+            . venv/bin/activate
+            make lint
+  e2e-tests:
+    <<: *executor_prep
+    steps:
+      - checkout
+      - *remote_docker
+      - *restore_cache
+      - *py_deps
+      - run:
+          name: run end-to-end tests
+          command: |
+            make test-e2e
+      - store_test_results:
+          path: test-reports
+      - store_artifacts:
+          path: test-reports
+
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
+      - lint:
+          requires:
+            - build
+      - e2e-tests:
+          requires:
+            - build
