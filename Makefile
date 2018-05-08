@@ -1,4 +1,4 @@
-.PHONY: deps
+.PHONY: all deps lint test docker e2e-env test-e2e debug push-to-gcr
 
 VERSION := $(shell git describe --tags --always --dirty)
 GCR_PROJECT := $(shell gcloud config get-value project 2> /dev/null)
@@ -12,8 +12,9 @@ deps:
 lint:
 	flake8 ./lib ./tests ./examples/
 
-test: lint
-	nosetests -v --debug=test
+test:
+	mkdir -p test-reports
+	nosetests -v --debug=test --with-xunit --xunit-file=test-reports/nosetests.xml
 
 docker:
 	docker build -t experiments:latest -t experiments:$(VERSION) .
@@ -26,6 +27,7 @@ e2e-env:
 test-e2e: e2e-env
 	docker-compose exec test /experiments/resources/wait-for-socket-address kubernetes 8080
 	docker-compose exec test make
+	docker cp $(shell docker-compose ps -q test):/experiments/test-reports .
 
 debug: e2e-env
 	docker-compose exec test /bin/bash
