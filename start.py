@@ -6,9 +6,7 @@ import uuid
 from kubernetes import client as k8sclient
 
 
-ns = os.getenv("EXPERIMENT_NAMESPACE")
-if not ns:
-    ns = "demo"
+ns = os.getenv("EXPERIMENT_NAMESPACE", "demo")
 
 test_namespace = k8sclient.V1Namespace()
 test_namespace.metadata = k8sclient.V1ObjectMeta(name=ns)
