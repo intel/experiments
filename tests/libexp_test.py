@@ -1,4 +1,5 @@
 import logging
+import json
 from . import test_namespace
 from lib.exp import Client, Experiment
 
@@ -57,6 +58,8 @@ def test_ux_flow():
     jobs = c.list_jobs(exp)
 
     assert len(jobs) == 1
+    assert jobs[0].metadata.annotations['experiment-job-parameters'] == \
+        json.dumps(params)
 
     params = {'x': 3.14, 'y': 7.5, 'z': False}
     job2 = c.create_job(exp, params)
@@ -65,8 +68,9 @@ def test_ux_flow():
 
     assert len(jobs) == 2
 
-    result = c.create_result(exp.result(job2.metadata.name))
+    result = c.create_result(exp.result(job2))
     result.record_values({'fitness': 0.86})
     result = c.update_result(result)
 
     assert result.values()['fitness'] == 0.86
+    assert result.parameters() == params
