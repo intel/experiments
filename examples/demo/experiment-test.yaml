@@ -2,7 +2,7 @@ apiVersion: "ml.intel.com/v1"
 kind: Experiment
 metadata:
   name: {{crd_name}}
-  namespace: demo
+  namespace: {{namespace}}
 spec:
   parameters:
     "x": [1, 2, 3]
