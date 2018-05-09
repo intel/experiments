@@ -291,19 +291,11 @@ class Experiment(object):
 
 
 class Result(object):
-    def __init__(self,
-                 name,
-                 exp_name,
-                 exp_uid,
-                 status=None,
-                 meta=None,
-                 params=None):
+    def __init__(self, name, exp_name, exp_uid, status=None, meta=None):
         if not status:
             status = {}
         if not meta:
             meta = {}
-        if not params:
-            params = {}
 
         self.name = name
         self.meta = meta
