@@ -58,7 +58,7 @@ def test_ux_flow():
     jobs = c.list_jobs(exp)
 
     assert len(jobs) == 1
-    assert jobs[0].metadata.annotations['experiment-job-parameters'] == \
+    assert jobs[0].metadata.annotations['job_parameters'] == \
         json.dumps(params)
 
     params = {'x': 3.14, 'y': 7.5, 'z': False}
@@ -73,4 +73,4 @@ def test_ux_flow():
     result = c.update_result(result)
 
     assert result.values()['fitness'] == 0.86
-    assert result.parameters() == params
+    assert result.job_parameters() == params
