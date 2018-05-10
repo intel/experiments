@@ -165,6 +165,9 @@ class Client(object):
                 'experiment_uid': experiment.uid(),
                 'experiment_name': experiment.name
             },
+            'annotations': {
+                'job_parameters': json.dumps(parameters)
+            },
             'ownerReferences': [
                 {
                     'apiVersion': '{}/{}'.format(API, API_VERSION),
@@ -266,11 +269,17 @@ class Experiment(object):
             'status': self.status
         }
 
-    def result(self, job_name):
+    def result(self, job):
+        status = {}
+        if 'job_parameters' in job.metadata.annotations:
+            status['job_parameters'] = json.loads(
+                job.metadata.annotations['job_parameters'])
+
         return Result(
-            job_name,
+            job.metadata.name,
             self.name,
-            self.uid()
+            self.uid(),
+            status=status
         )
 
     @staticmethod
@@ -288,6 +297,7 @@ class Result(object):
             status = {}
         if not meta:
             meta = {}
+
         self.name = name
         self.meta = meta
         self.status = status
@@ -308,6 +318,9 @@ class Result(object):
 
     def values(self):
         return self.status.get('values', {})
+
+    def job_parameters(self):
+        return self.status.get('job_parameters', {})
 
     # extends `.status.values` with the supplied map
     def record_values(self, new_values):
