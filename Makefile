@@ -1,5 +1,6 @@
 .PHONY: all deps lint test docker pydist e2e-env test-e2e debug push-to-gcr \
-	verify-gcr-image push-to-pypi verify-pypi-wheels valid-release release
+	verify-gcr-image push-to-pypi verify-pypi-wheels valid-release release \
+	valid-circlci-config
 
 VERSION := $(shell git describe --tags --always --dirty)
 GCR_PROJECT := $(shell gcloud config get-value project 2> /dev/null)
@@ -65,3 +66,7 @@ valid-release:
 	python setup.py check
 
 release: valid-release push-to-gcr push-to-pypi
+
+# requires circleci CLI: https://circleci.com/docs/2.0/local-cli/
+valid-circleci-config:
+	circleci config validate -c .circleci/config.yml
