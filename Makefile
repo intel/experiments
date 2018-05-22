@@ -1,4 +1,5 @@
-.PHONY: all deps lint test docker pydist e2e-env test-e2e debug push-to-gcr push-to-pypi release
+.PHONY: all deps lint test docker pydist e2e-env test-e2e debug push-to-gcr \
+	verify-gcr-image push-to-pypi verify-pypi-wheels valid-release release
 
 VERSION := $(shell git describe --tags --always --dirty)
 GCR_PROJECT := $(shell gcloud config get-value project 2> /dev/null)
@@ -39,6 +40,9 @@ push-to-gcr: docker
 	docker tag experiments:$(VERSION) $(IMG)
 	gcloud docker -- push $(IMG)
 
+verify-gcr-image:
+	gcloud container images describe $(IMG) >/dev/null 2>&1
+
 push-to-pypi: pydist
 	if [ -r ~/.pypirc ]; then \
 		echo "Uploading $(VERSION)" ; \
@@ -47,8 +51,17 @@ push-to-pypi: pydist
 		echo "~/.pypirc not found" ; \
 	fi;
 
+verify-pypi-wheels:
+	curl -I https://pypi.org/pypi/experiments/$(VERSION)/json 2>/dev/null | head -1 | grep 200 >/dev/null
+
+# note: can't do strict `setup.py check -s` (long_description_content_type not
+# yet understood in distutils).  See:
+# https://dustingram.com/articles/2018/03/16/markdown-descriptions-on-pypi
+# https://packaging.python.org/specifications/core-metadata/#description-content-type
 valid-release:
 	@echo "Ensuring a tagged, clean checkout for release..."
-	[[ "$(VERSION)" == $(shell git describe --tags) ]]
+	[[ "$(VERSION)" == $(shell git describe --abbrev=0 --tags) ]]
+	@echo "Ensuring valid setup.py format..."
+	python setup.py check
 
 release: valid-release push-to-gcr push-to-pypi
