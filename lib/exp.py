@@ -3,6 +3,7 @@ from collections import namedtuple
 import copy
 import json
 import os
+import time
 import uuid
 import yaml
 
@@ -67,13 +68,28 @@ class Client(object):
                 EXPERIMENTS)
         return [Experiment.from_body(item) for item in response['items']]
 
-    def get_experiment(self, name):
-        response = self.k8s.get_namespaced_custom_object(
-                API,
-                API_VERSION,
-                self.namespace,
-                EXPERIMENTS,
-                name)
+    def get_experiment(self, name, max_retries=30):
+        retry_count = 0
+
+        # retry loop to wait for the experiment object to become available
+        while retry_count < max_retries:
+            try:
+                response = self.k8s.get_namespaced_custom_object(
+                        API,
+                        API_VERSION,
+                        self.namespace,
+                        EXPERIMENTS,
+                        name)
+                break
+            except client.rest.ApiException:
+                time.sleep(1)
+                retry_count += 1
+                print("retry {}".format(retry_count))
+                if retry_count >= max_retries:
+                    print("Maximum retries reach when checking for "
+                          "experiment {} in namespace {}".format
+                          (name, self.namespace))
+                    raise
         return Experiment.from_body(response)
 
     def create_experiment(self, exp):
