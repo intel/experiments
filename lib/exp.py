@@ -271,12 +271,19 @@ class Experiment(object):
 
     def result(self, job):
         status = {}
-        if 'job_parameters' in job.metadata.annotations:
-            status['job_parameters'] = json.loads(
-                job.metadata.annotations['job_parameters'])
+
+        if isinstance(job, client.models.V1Job):
+            job_name = job.metadata.name
+            if 'job_parameters' in job.metadata.annotations:
+                status['job_parameters'] = json.loads(
+                    job.metadata.annotations['job_parameters'])
+        elif isinstance(job, str):
+            job_name = job
+        else:
+            raise TypeError("Unsupported type {} for job.".format(type(job)))
 
         return Result(
-            job.metadata.name,
+            job_name,
             self.name,
             self.uid(),
             status=status
