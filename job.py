@@ -20,7 +20,7 @@ def main():
     print('Starting job {} for experiment {}'.format(job_name, exp.name))
 
     try:
-        result = c.create_result(exp.result(job_name))
+        result = c.create_result(exp.result(c.get_job(job_name)))
     except kubernetes.client.rest.ApiException as e:
         body = json.loads(e.body)
         if body['reason'] != 'AlreadyExists':
