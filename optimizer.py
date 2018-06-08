@@ -20,16 +20,16 @@ from lib.exp import Client
 import logging
 
 
-VERBOSE=False
-LOG=None
+VERBOSE = False
+LOG = None
 
 
 def main():
     global LOG
-	# Parse arguments
+    # Parse arguments
     args = docopt(__doc__, version='optimizer 0.1.0')
 
-	# Set up logging
+    # Set up logging
     LOG = logging.getLogger('optimizer')
     logging.basicConfig(level=logging.INFO)
     if args['--verbose']:
@@ -48,7 +48,8 @@ def do_grid_search(client, exp):
 
 def build_grid_jobs(client, exp):
     for point in grid(exp.parameters):
-        LOG.info('creating job for point:\n{}'.format(json.dumps(point, sort_keys=True, indent=2)))
+        LOG.info('creating job for point:\n{}'.format(json.dumps(
+            point, sort_keys=True, indent=2)))
         job = client.create_job(exp, point)
         LOG.info('created job: {}'.format(job.metadata.name))
 
@@ -68,7 +69,8 @@ def grid(parameters):
     def expand(name, values):
         return [(name, value) for value in values]
 
-    expanded_parameters = [expand(item[0], item[1]) for item in parameters.items()]
+    expanded_parameters = [expand(item[0], item[1]) for item in
+                           parameters.items()]
 
     results = []
     for point in itertools.product(*expanded_parameters):
@@ -79,6 +81,7 @@ def grid(parameters):
             result[name] = value
         results.append(result)
     return results
+
 
 if __name__ == '__main__':
     main()
