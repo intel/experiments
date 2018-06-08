@@ -10,7 +10,7 @@ deps:
 	pip3 install -r requirements.txt -r requirements_tests.txt
 
 lint:
-	flake8 .
+	flake8 . --exclude ./venv
 
 test:
 	mkdir -p test-reports
