@@ -10,7 +10,7 @@ deps:
 	pip3 install -r requirements.txt -r requirements_tests.txt
 
 lint:
-	flake8 ./lib ./tests ./examples/
+	flake8 .
 
 test:
 	mkdir -p test-reports

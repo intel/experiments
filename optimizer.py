@@ -43,7 +43,7 @@ def main():
 
 
 def do_grid_search(client, exp):
-    jobs = build_grid_jobs(client, exp)
+    build_grid_jobs(client, exp)
 
 
 def build_grid_jobs(client, exp):

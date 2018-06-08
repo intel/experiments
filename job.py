@@ -4,7 +4,6 @@ import json
 import kubernetes
 import os
 import random
-import sys
 import time
 
 
