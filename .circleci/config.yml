@@ -11,21 +11,21 @@ aliases:
   - &restore_cache
     restore_cache:
       keys:
-        - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "requirements_tests.txt" }}
+        - v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
         # fallback to using the latest cache if no exact match is found
         - v1-dependencies-
   - &save_cache
     save_cache:
       paths:
         - ./venv
-      key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "requirements_tests.txt" }}
+      key: v1-dependencies-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
   - &py_deps
     run:
       name: install python dependencies
       command: |
         python3 -m venv venv
         . venv/bin/activate
-        pip install -r requirements.txt -r requirements_tests.txt
+        pip install -r requirements.txt -r requirements-dev.txt
 
 
 version: 2
@@ -64,16 +64,64 @@ jobs:
           path: test-reports
       - store_artifacts:
           path: test-reports
+  deploy:
+    <<: *executor_prep
+    steps:
+      - checkout
+      - *remote_docker
+      - *restore_cache
+      - *py_deps
+      - run:
+          name: init .pypirc
+          command: |
+            echo -e "[pypi]" >> ~/.pypirc
+            echo -e "username = $PYPI_USERNAME" >> ~/.pypirc
+            echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
+      - run:
+          name: init docker login
+          command: |
+            docker login -u _json_key --password "$GCLOUD_SERVICE_KEY" https://gcr.io
+      - run:
+          name: deploy docker image and pypi package
+          command: |
+            . venv/bin/activate
+            make release
+      - run:
+          name: ensure docker image exists
+          command: |
+            make verify-gcr-image
+      - run:
+          name: ensure python package exists on pypi
+          command: |
+            make verify-pypi-wheels
 
 
 workflows:
   version: 2
-  build_and_test:
+  build_and_test_and_deploy:
     jobs:
-      - build
+      - build:
+          filters:
+            tags:
+              only: /.*/
       - lint:
           requires:
             - build
+          filters:
+              tags:
+                  only: /.*/
       - e2e-tests:
           requires:
             - build
+          filters:
+              tags:
+                  only: /.*/
+      - deploy:
+          requires:
+            - lint
+            - e2e-tests
+          filters:
+              tags:
+                  only: /[0-9]+(\.[0-9]+)*/
+              branches:
+                  ignore: /.*/
