@@ -44,6 +44,9 @@ def test_ux_flow():
 
     assert exp.name == 'test'
 
+    verify_exp = c.get_experiment('test')
+    assert verify_exp.__dict__ == exp.__dict__
+
     # Create a job for the test experiment
     #
     #   This happens in the parameter search implementation.
@@ -61,6 +64,9 @@ def test_ux_flow():
     assert jobs[0].metadata.annotations['job_parameters'] == \
         json.dumps(params)
 
+    verify_job = c.get_job(jobs[0].metadata.name)
+    assert verify_job.metadata.__dict__ == jobs[0].metadata.__dict__
+
     params = {'x': 3.14, 'y': 7.5, 'z': False}
     job2 = c.create_job(exp, params)
 
@@ -69,6 +75,10 @@ def test_ux_flow():
     assert len(jobs) == 2
 
     result = c.create_result(exp.result(job2))
+
+    verify_result = c.get_result(result.name)
+    assert verify_result.__dict__ == result.__dict__
+
     result.record_values({'fitness': 0.86})
     result = c.update_result(result)
 

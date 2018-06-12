@@ -31,6 +31,37 @@ class Client(object):
         self.k8s = client.CustomObjectsApi()
         self.batch = client.BatchV1Api()
 
+    # Helper methods
+
+    def _retry_poll_api(self, api, max_retries_error, max_retries=30,
+                        retry_interval=1, api_kwargs={}):
+        """
+        Helper function that has a polling loop to retry calling the specified
+        API until it's successful (the client does not throw an Api Exception).
+
+        :param api: Client API to call
+        :param max_retries_error: Error message to print if the maximum retries
+                                  has been reached and the API call still fails
+        :param max_retries: Maximum number of times to retry calling the API
+        :param retry_interval: Number of seconds to wait between API retries
+        :param api_kwargs: Dictionary of API arguments
+        :return: Return value of the client API call
+        """
+        retry_count = 0
+        while retry_count < max_retries:
+            try:
+                return api(**api_kwargs)
+            except client.rest.ApiException:
+                time.sleep(retry_interval)
+                retry_count += 1
+
+                if retry_count >= max_retries:
+                    print(max_retries_error)
+                    raise
+                else:
+                    print("Retrying {}/{} \r".format(retry_count,
+                                                     max_retries)),
+
     # Type Definitions
 
     def create_crds(self):
@@ -68,28 +99,19 @@ class Client(object):
                 EXPERIMENTS)
         return [Experiment.from_body(item) for item in response['items']]
 
-    def get_experiment(self, name, max_retries=30):
-        retry_count = 0
-
-        # retry loop to wait for the experiment object to become available
-        while retry_count < max_retries:
-            try:
-                response = self.k8s.get_namespaced_custom_object(
-                        API,
-                        API_VERSION,
-                        self.namespace,
-                        EXPERIMENTS,
-                        name)
-                break
-            except client.rest.ApiException:
-                time.sleep(1)
-                retry_count += 1
-                print("retry {}".format(retry_count))
-                if retry_count >= max_retries:
-                    print("Maximum retries reach when checking for "
-                          "experiment {} in namespace {}".format
-                          (name, self.namespace))
-                    raise
+    def get_experiment(self, name):
+        max_retries_error = ("Maximum retries reach when checking for "
+                             "experiment {} in namespace {}.".format(
+                              name, self.namespace))
+        response = self._retry_poll_api(
+            self.k8s.get_namespaced_custom_object, max_retries_error,
+            api_kwargs={
+                "group": API,
+                "version": API_VERSION,
+                "namespace": self.namespace,
+                "plural": EXPERIMENTS,
+                "name": name
+            })
         return Experiment.from_body(response)
 
     def create_experiment(self, exp):
@@ -131,12 +153,18 @@ class Client(object):
         return [Result.from_body(item) for item in response['items']]
 
     def get_result(self, name):
-        response = self.k8s.get_namespaced_custom_object(
-                API,
-                API_VERSION,
-                self.namespace,
-                RESULTS,
-                name)
+        max_retries_error = ("Maximum retries reach when checking for "
+                             "result {} in namespace {}.".format(
+                              name, self.namespace))
+        response = self._retry_poll_api(
+            self.k8s.get_namespaced_custom_object, max_retries_error,
+            api_kwargs={
+                "group": API,
+                "version": API_VERSION,
+                "namespace": self.namespace,
+                "plural": RESULTS,
+                "name": name
+            })
         return Result.from_body(response)
 
     def create_result(self, result):
@@ -174,7 +202,15 @@ class Client(object):
         ).items
 
     def get_job(self, job_name):
-        return self.batch.read_namespaced_job(job_name, self.namespace)
+        max_retries_error = ("Maximum retries reach when checking for "
+                             "job {} in namespace {}.".format(
+                              job_name, self.namespace))
+        return self._retry_poll_api(
+            self.batch.read_namespaced_job, max_retries_error,
+            api_kwargs={
+                "name": job_name,
+                "namespace": self.namespace
+            })
 
     def create_job(self, experiment, parameters):
         short_uuid = str(uuid.uuid4())[:8]
