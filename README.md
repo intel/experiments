@@ -12,23 +12,27 @@ This project provides an API to support machine learning experiments on Kubernet
 
  - git
  - make
- - python
+ - python (v3 is the only tested variant at the moment)
  - kubectl and a connected cluster (minikube or a full cluster)
 
 ## Installation
 
-To install, run the following:
+To install the most recent release, run the following:
+```
+$ pip install experiments
+```
+
+## Development
+
+To check out and install the latest development release, run:
 ```
 $ git clone https://github.com/IntelAI/experiments.git
 $ cd experiments
 $ pip install .
 ```
-
-## Development
-
 To test the Experiments API, run the following:
 ```
-$ pip install -r requirements_tests.txt
+$ pip install -r requirements-dev.txt
 $ make test
 ``` 
 

@@ -40,12 +40,14 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.1.0',  # Required
+    use_scm_version=True,
+    setup_requires=['setuptools_scm'],
 
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#summary
-    description='Experiments',  # Required
+    description=('API supporting machine learning experiment tracking on '
+                 'kubernetes'),  # Required
 
     # This is an optional longer description of your project that represents
     # the body of text which users will see when they visit PyPI.
@@ -56,54 +58,45 @@ setup(
     # This field corresponds to the "Description" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#description-optional
     long_description=long_description,  # Optional
+    long_description_content_type='text/markdown',
 
     # This should be a valid link to your project's main homepage.
     #
     # This field corresponds to the "Home-Page" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#home-page-optional
-    # url='https://github.com/pypa/sampleproject',  # Optional
+    url='https://github.com/IntelAI/experiments',  # Optional
 
     # This should be your name or the name of the organization which owns the
     # project.
-    # author='The Python Packaging Authority',  # Optional
+    author='Intel AI Products Group',  # Optional
 
     # This should be a valid email address corresponding to the author listed
     # above.
-    # author_email='pypa-dev@googlegroups.com',  # Optional
+    author_email='aipg-experiments-dev@intel.com',  # Optional
 
     # Classifiers help users find your project by categorizing it.
     #
     # For a list of valid classifiers, see
     # https://pypi.python.org/pypi?%3Aaction=list_classifiers
-    # classifiers=[  # Optional
-    #     # How mature is this project? Common values are
-    #     #   3 - Alpha
-    #     #   4 - Beta
-    #     #   5 - Production/Stable
-    #     'Development Status :: 3 - Alpha',
-
-    #     # Indicate who your project is intended for
-    #     'Intended Audience :: Developers',
-    #     'Topic :: Software Development :: Build Tools',
-
-    #     # Pick your license as you wish
-    #     'License :: OSI Approved :: MIT License',
-
-    #     # Specify the Python versions you support here. In particular, ensure
-    #     # that you indicate whether you support Python 2, Python 3 or both.
-    #     'Programming Language :: Python :: 2',
-    #     'Programming Language :: Python :: 2.7',
-    #     'Programming Language :: Python :: 3',
-    #     'Programming Language :: Python :: 3.4',
-    #     'Programming Language :: Python :: 3.5',
-    #     'Programming Language :: Python :: 3.6',
-    # ],
+    classifiers=[  # Optional
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+        'Topic :: Software Development :: Libraries',
+        'Topic :: System :: Clustering',
+        'Topic :: System :: Distributed Computing',
+        'License :: OSI Approved :: Apache License',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
+    ],
 
     # This field adds keywords for your project which will appear on the
     # project page. What does your project relate to?
     #
     # Note that this is a string of words separated by whitespace, not a list.
-    # keywords='sample setuptools development',  # Optional
+    keywords=('kubernetes "machine learning" experiments '
+              '"hyperparameter tuning"'),  # Optional
 
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
@@ -175,10 +168,8 @@ setup(
     # issues, where the source is hosted, where to say thanks to the package
     # maintainers, and where to support the project financially. The key is
     # what's used to render the link text on PyPI.
-    # project_urls={  # Optional
-    #     'Bug Reports': 'https://github.com/pypa/sampleproject/issues',
-    #     'Funding': 'https://donate.pypi.org',
-    #     'Say Thanks!': 'http://saythanks.io/to/example',
-    #     'Source': 'https://github.com/pypa/sampleproject/',
-    # },
+    project_urls={  # Optional
+        'Bug Reports': 'https://github.com/IntelAI/experiments/issues',
+        'Source': 'https://github.com/IntelAI/experiments/',
+    },
 )
