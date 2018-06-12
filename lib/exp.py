@@ -100,7 +100,7 @@ class Client(object):
         return [Experiment.from_body(item) for item in response['items']]
 
     def get_experiment(self, name):
-        max_retries_error = ("Maximum retries reach when checking for "
+        max_retries_error = ("Maximum retries reached when checking for "
                              "experiment {} in namespace {}.".format(
                               name, self.namespace))
         response = self._retry_poll_api(
@@ -153,7 +153,7 @@ class Client(object):
         return [Result.from_body(item) for item in response['items']]
 
     def get_result(self, name):
-        max_retries_error = ("Maximum retries reach when checking for "
+        max_retries_error = ("Maximum retries reached when checking for "
                              "result {} in namespace {}.".format(
                               name, self.namespace))
         response = self._retry_poll_api(
@@ -202,7 +202,7 @@ class Client(object):
         ).items
 
     def get_job(self, job_name):
-        max_retries_error = ("Maximum retries reach when checking for "
+        max_retries_error = ("Maximum retries reached when checking for "
                              "job {} in namespace {}.".format(
                               job_name, self.namespace))
         return self._retry_poll_api(
