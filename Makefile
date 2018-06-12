@@ -53,7 +53,7 @@ push-to-pypi: pydist
 	fi;
 
 verify-pypi-wheels:
-	curl -I https://pypi.org/pypi/experiments/$(VERSION)/json 2>/dev/null | head -1 | grep 200 >/dev/null
+	curl --fail https://pypi.org/pypi/experiments/$(VERSION)/json >/dev/null 2>&1
 
 # note: can't do strict `setup.py check -s` (long_description_content_type not
 # yet understood in distutils).  See:
