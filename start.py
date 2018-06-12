@@ -2,7 +2,6 @@
 from lib.exp import Client
 import json
 import os
-import uuid
 from kubernetes import client as k8sclient
 
 

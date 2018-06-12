@@ -173,6 +173,9 @@ class Client(object):
             label_selector='experiment_uid={}'.format(experiment.uid())
         ).items
 
+    def get_job(self, job_name):
+        return self.batch.read_namespaced_job(job_name, self.namespace)
+
     def create_job(self, experiment, parameters):
         short_uuid = str(uuid.uuid4())[:8]
         metadata = {
@@ -287,6 +290,10 @@ class Experiment(object):
 
     def result(self, job):
         status = {}
+
+        if not isinstance(job, client.models.V1Job):
+            raise TypeError("job parameter must be a V1Job object.")
+
         if 'job_parameters' in job.metadata.annotations:
             status['job_parameters'] = json.loads(
                 job.metadata.annotations['job_parameters'])

@@ -4,7 +4,6 @@ import json
 import kubernetes
 import os
 import random
-import sys
 import time
 
 
@@ -20,7 +19,7 @@ def main():
     print('Starting job {} for experiment {}'.format(job_name, exp.name))
 
     try:
-        result = c.create_result(exp.result(job_name))
+        result = c.create_result(exp.result(c.get_job(job_name)))
     except kubernetes.client.rest.ApiException as e:
         body = json.loads(e.body)
         if body['reason'] != 'AlreadyExists':
@@ -28,7 +27,7 @@ def main():
         result = c.get_result(job_name)
 
     # result.record_values({'environment': os.environ})
-	# result = c.update_result(result)
+    # result = c.update_result(result)
 
     for i in range(0, 201, 10):
         values = {
