@@ -26,10 +26,11 @@ def deserialize_object(serialized_bytes, class_name):
 
 # Simple Experiments API wrapper for kube client
 class Client(object):
-    def __init__(self, namespace='default'):
+    def __init__(self, log, namespace='default'):
         self.namespace = namespace
         self.k8s = client.CustomObjectsApi()
         self.batch = client.BatchV1Api()
+        self.log = log
 
     # Helper methods
 
@@ -39,14 +40,20 @@ class Client(object):
         Helper function that has a polling loop to retry calling the specified
         API until it's successful (the client does not throw an Api Exception).
 
-        :param api: Client API to call
+        :param api: Kubernetes Client API function to call.
         :param max_retries_error: Error message to print if the maximum retries
                                   has been reached and the API call still fails
         :param max_retries: Maximum number of times to retry calling the API
         :param retry_interval: Number of seconds to wait between API retries
-        :param api_kwargs: Dictionary of API arguments
+        :param api_kwargs: Dictionary of arguments to pass to the Kubernetes
+        Client API function.
         :return: Return value of the client API call
         """
+
+        if not callable(api):
+            raise TypeError("Invalid 'api' parameter type.  Must be a callable"
+                            " function.")
+
         retry_count = 0
         while retry_count < max_retries:
             try:
@@ -56,11 +63,13 @@ class Client(object):
                 retry_count += 1
 
                 if retry_count >= max_retries:
-                    print(max_retries_error)
+                    # If we've exceeded the retry count, then raise the
+                    # original exception
+                    self.log.error(max_retries_error)
                     raise
                 else:
-                    print("Retrying {}/{} \r".format(retry_count,
-                                                     max_retries)),
+                    self.log.debug("Retrying {}/{} \r".format(retry_count,
+                                                              max_retries))
 
     # Type Definitions
 
@@ -92,11 +101,18 @@ class Client(object):
         return self.get_experiment(exp_name)
 
     def list_experiments(self):
-        response = self.k8s.list_namespaced_custom_object(
-                API,
-                API_VERSION,
-                self.namespace,
-                EXPERIMENTS)
+        max_retries_error = ("Maximum retries reached when getting list of "
+                             "experiments in namespace {}.".format(
+                              self.namespace))
+        response = self._retry_poll_api(
+            self.k8s.list_namespaced_custom_object, max_retries_error,
+            api_kwargs={
+                "group": API,
+                "version": API_VERSION,
+                "namespace": self.namespace,
+                "plural": EXPERIMENTS
+            })
+
         return [Experiment.from_body(item) for item in response['items']]
 
     def get_experiment(self, name):
@@ -115,41 +131,63 @@ class Client(object):
         return Experiment.from_body(response)
 
     def create_experiment(self, exp):
-        response = self.k8s.create_namespaced_custom_object(
-                API,
-                API_VERSION,
-                self.namespace,
-                EXPERIMENTS,
-                body=exp.to_body())
+        max_retries_error = ("Maximum retries reached when creating experiment"
+                             " in namespace {}.".format(self.namespace))
+        response = self._retry_poll_api(
+            self.k8s.create_namespaced_custom_object, max_retries_error,
+            api_kwargs={
+                "group": API,
+                "version": API_VERSION,
+                "namespace": self.namespace,
+                "plural": EXPERIMENTS,
+                "body": exp.to_body()
+            })
         return Experiment.from_body(response)
 
     def update_experiment(self, exp):
-        response = self.k8s.replace_namespaced_custom_object(
-                API,
-                API_VERSION,
-                self.namespace,
-                EXPERIMENTS,
-                exp.name,
-                exp.to_body())
+        max_retries_error = ("Maximum retries reached when updating experiment"
+                             " {} in namespace {}.".format(
+                              exp.name, self.namespace))
+        response = self._retry_poll_api(
+            self.k8s.replace_namespaced_custom_object, max_retries_error,
+            api_kwargs={
+                "group": API,
+                "version": API_VERSION,
+                "namespace": self.namespace,
+                "plural": EXPERIMENTS,
+                "name": exp.name,
+                "body": exp.to_body()
+            })
         return Experiment.from_body(response)
 
     def delete_experiment(self, name):
-        return self.k8s.delete_namespaced_custom_object(
-                API,
-                API_VERSION,
-                self.namespace,
-                EXPERIMENTS,
-                name,
-                client.models.V1DeleteOptions())
+        max_retries_error = ("Maximum retries reached when deleting experiment"
+                             " {} in namespace {}.".format(
+                              name, self.namespace))
+        return self._retry_poll_api(
+            self.k8s.delete_namespaced_custom_object, max_retries_error,
+            api_kwargs={
+                "group": API,
+                "version": API_VERSION,
+                "namespace": self.namespace,
+                "plural": EXPERIMENTS,
+                "name": name,
+                "body": client.models.V1DeleteOptions()
+            })
 
     # Experiment Results
 
     def list_results(self):
-        response = self.k8s.list_namespaced_custom_object(
-                API,
-                API_VERSION,
-                self.namespace,
-                RESULTS)
+        max_retries_error = ("Maximum retries reached when listing results "
+                             "in namespace {}.".format(self.namespace))
+        response = self._retry_poll_api(
+            self.k8s.list_namespaced_custom_object, max_retries_error,
+            api_kwargs={
+                "group": API,
+                "version": API_VERSION,
+                "namespace": self.namespace,
+                "plural": RESULTS
+            })
         return [Result.from_body(item) for item in response['items']]
 
     def get_result(self, name):
@@ -168,38 +206,61 @@ class Client(object):
         return Result.from_body(response)
 
     def create_result(self, result):
-        response = self.k8s.create_namespaced_custom_object(
-                API,
-                API_VERSION,
-                self.namespace,
-                RESULTS,
-                body=result.to_body())
+        max_retries_error = ("Maximum retries reached when creating result "
+                             "in namespace {}.".format(self.namespace))
+        response = self._retry_poll_api(
+            self.k8s.create_namespaced_custom_object, max_retries_error,
+            api_kwargs={
+                "group": API,
+                "version": API_VERSION,
+                "namespace": self.namespace,
+                "plural": RESULTS,
+                "body": result.to_body()
+            })
         return Result.from_body(response)
 
     def update_result(self, result):
-        response = self.k8s.replace_namespaced_custom_object(
-                API,
-                API_VERSION,
-                self.namespace,
-                RESULTS,
-                result.name,
-                result.to_body())
+        max_retries_error = ("Maximum retries reached when updating result {} "
+                             "in namespace {}.".format(
+                              result.name, self.namespace))
+        response = self._retry_poll_api(
+            self.k8s.replace_namespaced_custom_object, max_retries_error,
+            api_kwargs={
+                "group": API,
+                "version": API_VERSION,
+                "namespace": self.namespace,
+                "plural": RESULTS,
+                "name": result.name,
+                "body": result.to_body()
+            })
+
         return Result.from_body(response)
 
     def delete_result(self, name):
-        return self.k8s.delete_namespaced_custom_object(
-                API,
-                API_VERSION,
-                self.namespace,
-                RESULTS,
-                name,
-                client.models.V1DeleteOptions())
+        max_retries_error = ("Maximum retries reached when deleting result {} "
+                             "in namespace {}.".format(
+                              name, self.namespace))
+        return self._retry_poll_api(
+            self.k8s.delete_namespaced_custom_object, max_retries_error,
+            api_kwargs={
+                "group": API,
+                "version": API_VERSION,
+                "namespace": self.namespace,
+                "plural": RESULTS,
+                "name": name,
+                "body": client.models.V1DeleteOptions()
+            })
 
     def list_jobs(self, experiment):
-        return self.batch.list_namespaced_job(
-            self.namespace,
-            label_selector='experiment_uid={}'.format(experiment.uid())
-        ).items
+        max_retries_error = ("Maximum retries reached when listing jobs in "
+                             "namespace {}.".format(
+                              self.namespace))
+        return self._retry_poll_api(
+            self.batch.list_namespaced_job, max_retries_error,
+            api_kwargs={
+                "namespace": self.namespace,
+                "label_selector": 'experiment_uid={}'.format(experiment.uid())
+            }).items
 
     def get_job(self, job_name):
         max_retries_error = ("Maximum retries reached when checking for "
@@ -283,10 +344,15 @@ class Client(object):
             metadata=metadata,
             spec=deserialize_object(json.dumps(template), 'V1JobSpec'))
 
-        return self.batch.create_namespaced_job(
-            self.namespace,
-            body=job
-        )
+        max_retries_error = ("Maximum retries reached when creating job {} in "
+                             "namespace {}.".format(
+                              job_name, self.namespace))
+        return self._retry_poll_api(
+            self.batch.create_namespaced_job, max_retries_error,
+            api_kwargs={
+                "namespace": self.namespace,
+                "body": job
+            })
 
 
 class Experiment(object):

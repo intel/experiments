@@ -1,4 +1,5 @@
 from lib.exp import Client
+import logging
 import uuid
 from kubernetes import client as k8sclient
 
@@ -11,7 +12,8 @@ def setup():
     v1_api = k8sclient.CoreV1Api()
     v1_api.create_namespace(test_namespace)
 
-    c = Client(namespace=test_namespace.metadata.name)
+    c = Client(logging.getLogger('test'),
+               namespace=test_namespace.metadata.name)
     c.create_crds()
 
 
