@@ -16,6 +16,8 @@ EXPERIMENTS = "experiments"
 RESULT = "result"
 RESULTS = "results"
 
+LOG = logging.getLogger(__name__)
+
 
 def deserialize_object(serialized_bytes, class_name):
     # Necessary to get access to request body deserialization methods.
@@ -31,9 +33,6 @@ class Client(object):
         self.namespace = namespace
         self.k8s = client.CustomObjectsApi()
         self.batch = client.BatchV1Api()
-        self.log = logging.getLogger(__name__)
-
-    # Helper methods
 
     def _retry_poll_api(self, api, max_retries_error, max_retries=30,
                         retry_interval=1, api_kwargs={}):
@@ -66,11 +65,11 @@ class Client(object):
                 if retry_count >= max_retries:
                     # If we've exceeded the retry count, then raise the
                     # original exception
-                    self.log.error(max_retries_error)
+                    LOG.error(max_retries_error)
                     raise
                 else:
-                    self.log.debug("Retrying {}/{} \r".format(retry_count,
-                                                              max_retries))
+                    LOG.debug("Retrying {}/{} \r".format(retry_count,
+                                                         max_retries))
 
     # Type Definitions
 
