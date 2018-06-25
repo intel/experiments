@@ -10,6 +10,9 @@ rules:
 - apiGroups: ["ml.intel.com"]
   resources: ["results"]
   verbs: ["*"]
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["*"]
 ---
 # experiment CRD role binding
 kind: RoleBinding
