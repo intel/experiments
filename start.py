@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from lib.exp import Client
 import json
-import logging
 import os
 from kubernetes import client as k8sclient
 
@@ -20,5 +19,5 @@ except k8sclient.rest.ApiException as e:
     else:
         raise e
 
-c = Client(logging.getLogger('start'), namespace=test_namespace.metadata.name)
+c = Client(namespace=test_namespace.metadata.name)
 c.create_crds()

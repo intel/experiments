@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from lib.exp import Client
 import json
-import logging
 import kubernetes
+import logging
 import os
 import random
 import time
@@ -11,12 +11,12 @@ import time
 def main():
     ns = os.getenv('EXPERIMENT_NAMESPACE')
     job_name = os.getenv('JOB_NAME')
-    log = logging.getLogger('experiments_job')
+    log = logging.getLogger(__name__)
 
     if not ns or not job_name:
         raise Exception('Missing EXPERIMENT_NAMESPACE or JOB_NAME')
 
-    c = Client(log, ns)
+    c = Client(ns)
     exp = c.current_experiment()
 
     log.info('Starting job {} for experiment {}'.format(job_name, exp.name))

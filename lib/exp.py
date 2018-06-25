@@ -2,6 +2,7 @@ from kubernetes import client
 from collections import namedtuple
 import copy
 import json
+import logging
 import os
 import time
 import uuid
@@ -26,11 +27,11 @@ def deserialize_object(serialized_bytes, class_name):
 
 # Simple Experiments API wrapper for kube client
 class Client(object):
-    def __init__(self, log, namespace='default'):
+    def __init__(self, namespace='default'):
         self.namespace = namespace
         self.k8s = client.CustomObjectsApi()
         self.batch = client.BatchV1Api()
-        self.log = log
+        self.log = logging.getLogger(__name__)
 
     # Helper methods
 

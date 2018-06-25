@@ -9,20 +9,20 @@ def log(msg):
 
 
 def test_client_list_experiments():
-    c = Client(logging.getLogger('test'), test_namespace.metadata.name)
+    c = Client(test_namespace.metadata.name)
     result = c.list_experiments()
     assert isinstance(result, list)
 
 
 def test_client_list_results():
-    c = Client(logging.getLogger('test'), test_namespace.metadata.name)
+    c = Client(test_namespace.metadata.name)
     result = c.list_results()
     assert isinstance(result, list)
 
 
 # TODO(CD): run tests in some namespace and destroy it when complete
 def test_ux_flow():
-    c = Client(logging.getLogger('test'), test_namespace.metadata.name)
+    c = Client(test_namespace.metadata.name)
 
     # Create a new experiment
     jobSpec = {

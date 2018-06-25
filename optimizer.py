@@ -38,7 +38,7 @@ def main():
 
     namespace = args['--namespace']
     experiment_name = args['--experiment-name']
-    client = Client(LOG, namespace)
+    client = Client(namespace)
     do_grid_search(client, client.get_experiment(experiment_name))
 
 
