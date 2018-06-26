@@ -2,6 +2,7 @@
 from lib.exp import Client
 import json
 import kubernetes
+import logging
 import os
 import random
 import time
@@ -10,13 +11,15 @@ import time
 def main():
     ns = os.getenv('EXPERIMENT_NAMESPACE')
     job_name = os.getenv('JOB_NAME')
+    log = logging.getLogger(__name__)
+
     if not ns or not job_name:
         raise Exception('Missing EXPERIMENT_NAMESPACE or JOB_NAME')
 
     c = Client(ns)
     exp = c.current_experiment()
 
-    print('Starting job {} for experiment {}'.format(job_name, exp.name))
+    log.info('Starting job {} for experiment {}'.format(job_name, exp.name))
 
     try:
         result = c.create_result(exp.result(c.get_job(job_name)))
@@ -36,7 +39,7 @@ def main():
                 'accuracy': random.random()
             }
         }
-        print('publishing results: {}'.format(
+        log.info('publishing results: {}'.format(
             json.dumps(values, sort_keys=True)))
         result.record_values(values)
         time.sleep(1)
