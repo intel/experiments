@@ -1,5 +1,7 @@
 # Experiments API
 
+[![CircleCI](https://circleci.com/gh/IntelAI/experiments.svg?style=shield)](https://circleci.com/gh/IntelAI/experiments)
+
 Training a deep neural network requires finding a good combination of model hyperparameters. The process of finding good values for each is called hyperparameter optimization. The number of jobs required for each such experiment typically ranges from the low ones into the hundreds.
 
 Individual workflows for optimization vary, but this is typically an ad-hoc manual process including custom job submit scripts or even pen and paper.
