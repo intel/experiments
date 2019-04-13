@@ -329,10 +329,11 @@ class Client(object):
             # To avoid python'ist boolean values.
             # Encode them as either 'true' or 'false'
             if value_kind == "bool":
-                value = str(value).lower()
-
-            experiment_environment_metadata.append(
-                    {'name': key, 'value': str(value)})
+                experiment_environment_metadata.append(
+                        {'name': key, 'value': value})
+            else:
+                experiment_environment_metadata.append(
+                        {'name': key, 'value': str(value)})
 
         for container in containers:
             if not container.get('env'):
